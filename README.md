@@ -22,7 +22,7 @@ keep -v
 Run `keep` on a Vue project
 
 ```bash
-keep -d path-to-project/src/components -p run
+keep -d path-to-project/src/ -p run
 ```
 
 ## Authors
