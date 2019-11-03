@@ -18,10 +18,10 @@ var (
 )
 
 func info(app *cli.App) {
-	app.Name = "Housekeeper 🧹 "
+	app.Name = "Housekeep 🧹 "
 	app.Usage = "Keep track how often your Vue components are used."
 	app.Author = "Bored Chinese"
-	app.Version = "1.0"
+	app.Version = "1.0.1"
 }
 
 func commands(app *cli.App) {
