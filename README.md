@@ -3,12 +3,14 @@ Keep track how often your Vue components are used.
 
 ## Installing
 
-[Download](https://github.com/boredchinese/housekeeper/releases) and unzip.
+1. [Download](https://github.com/boredchinese/housekeeper/releases) and unzip.
 
-Move `keep` to `usr/local/bin`
+2. Move `keep` to `usr/local/bin`
+
 `mv keep /usr/local/bin`
 
-Test if your terminal recognizes `keep`
+3. Test if your terminal recognizes `keep`
+
 `keep -v`
 
 ## Getting Started
