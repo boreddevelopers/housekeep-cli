@@ -68,7 +68,7 @@ func RemoveExtension(name string) string {
 }
 
 // PrintResults prints the component counter results
-func PrintResults(components map[string]*CounterStruct) {
+func PrintResults(components map[string]*ComponentStruct) {
 	for k, v := range components {
 		k = RemoveExtension(k)
 		fmt.Print(k, " ")
