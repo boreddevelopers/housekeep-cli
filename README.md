@@ -1,11 +1,19 @@
 # 🧹 Housekeeper
 Keep track how often your Vue components are used.
 
-### Installing
+## Installing
 
 Download the binary file from releases.
 
 `mv keep /usr/local/bin`
+
+## Getting Started
+
+Run `keep` on a Vue project
+
+```bash
+keep -d path-to-project/src/components -p run
+```
 
 ## Authors
 
