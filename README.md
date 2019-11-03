@@ -27,6 +27,11 @@ Run `keep` on a Vue project
 keep -d path-to-project/src/ -p run
 ```
 
+## Flags
+
+- `-d` or `-dir`: The directory of your Vue project
+- `-p` or `-print`: Print the result in CLI
+
 ## Authors
 
 * **Bored Chinese** - *Initial work* - [BoredChinese](https://github.com/boredchinese)
