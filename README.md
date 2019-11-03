@@ -1,6 +1,8 @@
 # 🧹 Housekeep
 Keep track how often your Vue components are used.
 
+![alt text](screenshot.png "Screenshot of terminal containing a demonstration of the tool.")
+
 ## Installing
 
 1. [Download](https://github.com/boredchinese/housekeep/releases) and unzip.

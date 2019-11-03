@@ -2,13 +2,25 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
+	"text/tabwriter"
+	"text/template"
 
-	"gopkg.in/gookit/color.v1"
+	"github.com/gookit/color"
 )
+
+type a struct {
+	Title string
+	Items []items
+}
+
+type items struct {
+	Title string
+	Body  string
+}
 
 // FilesWalk recursively walks through files finding ones by extension
 func FilesWalk(root, pattern string) ([]string, error) {
@@ -40,16 +52,58 @@ func PrintStringArray(files []string) {
 	}
 }
 
-// ReadFile reads a file! :)
-func ReadFile(filePath string) (string, error) {
-	f, err := ioutil.ReadFile(filePath)
-	return string(f), err
-}
-
-// GetComponentName fetches the component name of a given file path
-func GetComponentName(filePath string) string {
+// GetFileName fetches the component name of a given file path
+func GetFileName(filePath string) string {
 	s := strings.Split(filePath, "/")
 	return s[len(s)-1]
+}
+
+// GetComponentName gets the component name
+func GetComponentName(filePath string) string {
+	data, _ := ReadFile(filePath)
+	scriptData := GetScriptData(data)
+	arrData := strings.Split(scriptData, "\n")
+	componentName := ""
+	level := 0
+
+	for _, line := range arrData {
+		if strings.Contains(line, "{") {
+			level++
+		} else if strings.Contains(line, "}") {
+			level--
+		}
+
+		if strings.Contains(line, "name:") && level == 1 {
+			componentName = line[len("name:")+1 : len(line)]
+			componentName = strings.Trim(componentName, ",\"")
+			componentName = strings.Trim(componentName, "'")
+		}
+	}
+
+	if componentName == "" {
+		componentName = GetFileName(filePath)
+		componentName = RemoveExtension(componentName)
+	}
+
+	return componentName
+}
+
+// GetScriptData gets the script portion of a vue file
+func GetScriptData(data string) string {
+	startLine := strings.Index(data, "export default")
+	endLine := strings.Index(data, "</script>")
+	scriptData := data[startLine+len("export default") : endLine]
+
+	return strings.Replace(scriptData, " ", "", -1)
+}
+
+// GetTemplateData gets the template portion of a vue file
+func GetTemplateData(data string) string {
+	startLine := strings.Index(data, "<template>")
+	endLine := strings.LastIndex(data, "</template>")
+	templateData := data[startLine+len("<template>") : endLine]
+
+	return strings.Replace(templateData, " ", "", -1)
 }
 
 // Concat merges two strings together
@@ -67,26 +121,36 @@ func RemoveExtension(name string) string {
 	return s[0]
 }
 
+const templ = `{{.Title}}{{range .Items}}
+{{.Title}}	{{.Body}}{{end}}
+`
+
 // PrintResults prints the component counter results
-func PrintResults(components map[string]*ComponentStruct) {
-	for k, v := range components {
-		k = RemoveExtension(k)
-		fmt.Print(k, " ")
-
-		if v.impt > 0 {
-			color.Green.Printf("%d import(s)", v.impt)
-		} else if v.impt == 0 {
-			color.Red.Printf("%d import(s)", v.impt)
-		}
-
-		fmt.Print(" - ")
-
-		if v.template > 0 {
-			color.Green.Printf("%d call(s)", v.template)
-		} else if v.template == 0 {
-			color.Red.Printf("%d call(s)", v.template)
-		}
-
-		fmt.Println()
+func PrintResults(c map[string]*ComponentStruct) {
+	data := a{
+		Title: "Results",
+		Items: make([]items, len(c)),
 	}
+
+	i := 0
+	for _, v := range c {
+		title := color.Green.Sprintf("%s", v.name)
+
+		if v.template == 0 || v.impt == 0 {
+			title = color.Red.Sprintf("%s", v.name)
+		}
+
+		data.Items[i].Title = title
+		data.Items[i].Body = fmt.Sprintf("|  %d call(s), %d import(s)", v.template, v.impt)
+		i++
+	}
+
+	t := template.New("template")
+	t, _ = t.Parse(templ)
+	w := tabwriter.NewWriter(os.Stdout, 8, 8, 8, ' ', 0)
+
+	if err := t.Execute(w, data); err != nil {
+		log.Fatal(err)
+	}
+	w.Flush()
 }
