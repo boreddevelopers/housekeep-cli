@@ -2,122 +2,65 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"log"
 	"os"
-	"path/filepath"
-	"strings"
+
+	"github.com/urfave/cli"
 )
 
-// FilesWalk recursively walks through files finding ones by extension
-func FilesWalk(root, pattern string) ([]string, error) {
-	var matches []string
-	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if info.IsDir() {
-			return nil
-		}
-		if matched, err := filepath.Match(pattern, filepath.Base(path)); err != nil {
-			return err
-		} else if matched {
-			matches = append(matches, path)
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return matches, nil
+var (
+	flags      []cli.Flag
+	dir        string
+	components []string
+	output     bool
+	cnLength   int
+	toPrint    bool
+)
+
+func info(app *cli.App) {
+	app.Name = "Housekeeper 🧹 "
+	app.Usage = "Keep track how often your Vue components are used."
+	app.Author = "Bored Chinese"
+	app.Version = "1.0"
 }
 
-func check(e error) {
-	if e != nil {
-		fmt.Println("ERROR: Unable to open file.")
-	}
-}
-
-// PrintStringArray prints all strings in the array
-func PrintStringArray(files []string) {
-	for _, str := range files {
-		fmt.Println(str)
+func commands(app *cli.App) {
+	app.Commands = []cli.Command{
+		{
+			Name:    "run",
+			Aliases: []string{"r"},
+			Usage:   "Run housekeeping for all components.",
+			Action: func(c *cli.Context) {
+				Keep()
+				fmt.Printf("✨ Done. Checked %d file(s).\n", cnLength)
+			},
+		},
 	}
 }
 
-// ReadFile reads a file! :)
-func ReadFile(filePath string) (string, error) {
-	f, err := ioutil.ReadFile(filePath)
-
-	// if err != nil {
-	// 	fmt.Println("[ERROR] Unable to open file")
-	// } else {
-	// 	fmt.Println(string(f))
-	// }
-
-	return string(f), err
-}
-
-func getComponentName(filePath string) string {
-	s := strings.Split(filePath, "/")
-	return s[len(s)-1]
-}
-
-func concat(a, b string) string {
-	var str strings.Builder
-
-	str.WriteString(a)
-	str.WriteString(b)
-	return str.String()
-}
-
-func removeExtension(name string) string {
-	s := strings.Split(name, ".")
-	return s[0]
+func init() {
+	flags = []cli.Flag{
+		cli.StringFlag{
+			Name:        "dir, d",
+			Usage:       "Set the directory of your Vue project.",
+			Destination: &dir,
+		},
+		cli.BoolFlag{
+			Name:        "print, p",
+			Usage:       "Print the tallies in CLI",
+			Destination: &toPrint,
+		},
+	}
 }
 
 func main() {
-	files, err := FilesWalk("../bposeats.com/src/", "*.vue")
-	var componentNames []string
-	var componentMap = make(map[string]int)
+	app := cli.NewApp()
+	app.Flags = flags
+	info(app)
+	commands(app)
 
-	// init component map
-	for _, filePath := range files {
-		c := getComponentName(filePath)
-
-		if strings.ToLower(c) == "app.vue" {
-			continue
-		}
-
-		componentMap[c] = 0
-	}
-
+	err := app.Run(os.Args)
 	if err != nil {
-		fmt.Println("ERROR")
-	} else {
-		for _, filePath := range files {
-			componentName := getComponentName(filePath)
-			// Ignore App.vue because it's common in every project.
-			if strings.ToLower(componentName) == "app.vue" {
-				continue
-			}
-
-			componentNames = append(componentNames, componentName)
-		}
-
-		// TODO: Find words in file
-		for _, name := range componentNames {
-			// fmt.Println(name)
-			// 2. import statement
-			for _, filePath := range files {
-				data, err := ReadFile(filePath)
-				if err == nil {
-					keyword := removeExtension(name)
-					if strings.Contains(data, keyword) {
-						componentMap[name]++
-					}
-				}
-			}
-			fmt.Printf("%s: %d\n", removeExtension(name), componentMap[name])
-		}
+		log.Fatal(err)
 	}
 }
