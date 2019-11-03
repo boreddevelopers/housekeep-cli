@@ -7,11 +7,15 @@ Keep track how often your Vue components are used.
 
 2. Move `keep` to `usr/local/bin`
 
-`mv keep /usr/local/bin`
+```bash
+mv keep /usr/local/bin
+```
 
 3. Test if your terminal recognizes `keep`
 
-`keep -v`
+```bash
+keep -v
+```
 
 ## Getting Started
 
