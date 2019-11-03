@@ -2,122 +2,135 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"log"
 	"os"
-	"path/filepath"
 	"strings"
+
+	"github.com/urfave/cli"
 )
 
-// FilesWalk recursively walks through files finding ones by extension
-func FilesWalk(root, pattern string) ([]string, error) {
-	var matches []string
-	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if info.IsDir() {
-			return nil
-		}
-		if matched, err := filepath.Match(pattern, filepath.Base(path)); err != nil {
-			return err
-		} else if matched {
-			matches = append(matches, path)
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return matches, nil
+// CounterStruct Holds the number of occurrences for imports and template calls
+type CounterStruct struct {
+	impt, template int
 }
 
-func check(e error) {
-	if e != nil {
-		fmt.Println("ERROR: Unable to open file.")
-	}
-}
+var (
+	flags      []cli.Flag
+	dir        string
+	components []string
+	output     bool
+	cnLength   int
+)
 
-// PrintStringArray prints all strings in the array
-func PrintStringArray(files []string) {
-	for _, str := range files {
-		fmt.Println(str)
-	}
-}
-
-// ReadFile reads a file! :)
-func ReadFile(filePath string) (string, error) {
-	f, err := ioutil.ReadFile(filePath)
-
-	// if err != nil {
-	// 	fmt.Println("[ERROR] Unable to open file")
-	// } else {
-	// 	fmt.Println(string(f))
-	// }
-
-	return string(f), err
-}
-
-func getComponentName(filePath string) string {
-	s := strings.Split(filePath, "/")
-	return s[len(s)-1]
-}
-
-func concat(a, b string) string {
-	var str strings.Builder
-
-	str.WriteString(a)
-	str.WriteString(b)
-	return str.String()
-}
-
-func removeExtension(name string) string {
-	s := strings.Split(name, ".")
-	return s[0]
-}
-
-func main() {
-	files, err := FilesWalk("../bposeats.com/src/", "*.vue")
+func run() {
+	files, err := FilesWalk(Concat(dir, "/src"), "*.vue")
 	var componentNames []string
-	var componentMap = make(map[string]int)
+	cnLength = 0
+	componentMap := make(map[string]*CounterStruct)
 
 	// init component map
 	for _, filePath := range files {
-		c := getComponentName(filePath)
+		c := GetComponentName(filePath)
 
 		if strings.ToLower(c) == "app.vue" {
 			continue
 		}
 
-		componentMap[c] = 0
+		componentMap[c] = &CounterStruct{0, 0}
 	}
 
 	if err != nil {
 		fmt.Println("ERROR")
 	} else {
 		for _, filePath := range files {
-			componentName := getComponentName(filePath)
+			componentName := GetComponentName(filePath)
 			// Ignore App.vue because it's common in every project.
 			if strings.ToLower(componentName) == "app.vue" {
 				continue
 			}
 
 			componentNames = append(componentNames, componentName)
+			cnLength = len(componentNames)
 		}
 
-		// TODO: Find words in file
-		for _, name := range componentNames {
-			// fmt.Println(name)
-			// 2. import statement
-			for _, filePath := range files {
-				data, err := ReadFile(filePath)
-				if err == nil {
-					keyword := removeExtension(name)
-					if strings.Contains(data, keyword) {
-						componentMap[name]++
+		for _, filePath := range files {
+			data, err := ReadFile(filePath)
+
+			if err == nil {
+				for _, name := range componentNames {
+					keyword := RemoveExtension(name)
+					importName := Concat("import ", keyword)
+
+					if strings.Contains(data, importName) {
+						componentMap[name].impt++
 					}
+
+					templateName := Concat("<", keyword)
+					templateOccurrence := strings.Count(data, templateName)
+
+					// if templateOccurrence > 0 {
+					// 	fmt.Printf("Found %s %d times in %s\n", templateName, templateOccurrence, GetComponentName(filePath))
+					// }
+
+					componentMap[name].template += templateOccurrence
 				}
 			}
-			fmt.Printf("%s: %d\n", removeExtension(name), componentMap[name])
 		}
+
+		PrintResults(componentMap)
+	}
+}
+
+func info(app *cli.App) {
+	app.Name = "Housekeeper 🧹 "
+	app.Usage = "Keep track how often your Vue components are used."
+	app.Author = "Bored Chinese"
+	app.Version = "1.0"
+}
+
+func commands(app *cli.App) {
+	app.Commands = []cli.Command{
+		{
+			Name:    "run",
+			Aliases: []string{"r"},
+			Usage:   "Run housekeeping for all components.",
+			Action: func(c *cli.Context) {
+				fmt.Println(dir)
+				run()
+				fmt.Printf("✨ Done. Checked %d file(s).\n", cnLength)
+			},
+		},
+	}
+}
+
+func init() {
+	flags = []cli.Flag{
+		cli.StringFlag{
+			Name:        "dir, d",
+			Usage:       "Set the directory of your Vue project.",
+			Destination: &dir,
+		},
+		// cli.BoolFlag{
+		// 	Name:        "output, o",
+		// 	Usage:       "Output the data to data.csv.",
+		// 	Destination: &output,
+		// },
+		// cli.StringSliceFlag{
+		// 	Name:        "components, c",
+		// 	Usage:       "List of component names (without file extension) that you want to specifically find.",
+		// 	Destination: &components,
+		// },
+	}
+}
+
+func main() {
+	app := cli.NewApp()
+	app.Flags = flags
+	info(app)
+	commands(app)
+
+	err := app.Run(os.Args)
+	if err != nil {
+		log.Fatal(err)
 	}
 }
