@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -16,6 +17,7 @@ func initComponentMap(files []string, c map[string]*ComponentStruct) {
 	for _, filePath := range files {
 		name := GetComponentName(filePath)
 		fileName := GetFileName(filePath)
+		Logger(fmt.Sprintf("Component: %s - File: %s", name, fileName))
 		c[fileName] = &ComponentStruct{0, 0, name, filePath}
 	}
 }
@@ -24,9 +26,11 @@ func initComponentMap(files []string, c map[string]*ComponentStruct) {
 func Analyzer(filePath string, c map[string]*ComponentStruct) {
 	data, _ := ReadFile(filePath)
 
-	tData := GetTemplateData(data)
-	iData := GetScriptData(data)
+	tStatus, tData := GetTemplateData(data)
+	iStatus, iData := GetScriptData(data)
 
+	Logger(tStatus)
+	Logger(iStatus)
 	for k, cStruct := range c {
 		// Check template data
 		tCount := strings.Count(tData, Concat("<", cStruct.name))
@@ -46,13 +50,18 @@ func Keep() {
 	componentMap := make(map[string]*ComponentStruct)
 	cnLength = len(files)
 
+	Logger("Initializing componentMap")
 	initComponentMap(files, componentMap)
+	Logger("Done.")
 
 	if err != nil {
+		Logger("Error in FilesWalk")
 		panic(err)
 	} else {
 		for _, filePath := range files {
+			Logger(Concat("Reading ", filePath))
 			Analyzer(filePath, componentMap)
+			Logger(Concat("Successfully read ", filePath))
 		}
 	}
 

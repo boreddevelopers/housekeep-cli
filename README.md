@@ -31,6 +31,8 @@ keep -d path-to-project/src/ -p run
 
 - `-d` or `-dir`: The directory of your Vue project
 - `-p` or `-print`: Print the result in CLI
+- `-l` or `-log`: Logs debugging information to `debug.log` and is saved wherever `keep` is moved to.
+- `-h` or `-help`: For help 
 
 ## Authors
 

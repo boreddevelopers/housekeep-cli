@@ -8,6 +8,7 @@ import (
 	"strings"
 	"text/tabwriter"
 	"text/template"
+	"time"
 
 	"github.com/gookit/color"
 )
@@ -61,7 +62,10 @@ func GetFileName(filePath string) string {
 // GetComponentName gets the component name
 func GetComponentName(filePath string) string {
 	data, _ := ReadFile(filePath)
-	scriptData := GetScriptData(data)
+	Logger(Concat("Attempting ", filePath))
+	status, scriptData := GetScriptData(data)
+
+	Logger(status)
 	arrData := strings.Split(scriptData, "\n")
 	componentName := ""
 	level := 0
@@ -85,25 +89,35 @@ func GetComponentName(filePath string) string {
 		componentName = RemoveExtension(componentName)
 	}
 
+	Logger("Success.")
 	return componentName
 }
 
 // GetScriptData gets the script portion of a vue file
-func GetScriptData(data string) string {
+func GetScriptData(data string) (string, string) {
 	startLine := strings.Index(data, "export default")
 	endLine := strings.Index(data, "</script>")
-	scriptData := data[startLine+len("export default") : endLine]
 
-	return strings.Replace(scriptData, " ", "", -1)
+	if startLine == -1 || endLine == -1 {
+		return "NO_SCRIPT", ""
+	}
+
+	scriptData := data[startLine+len("export default") : endLine]
+	return "OK", strings.Replace(scriptData, " ", "", -1)
 }
 
 // GetTemplateData gets the template portion of a vue file
-func GetTemplateData(data string) string {
+func GetTemplateData(data string) (string, string) {
 	startLine := strings.Index(data, "<template>")
 	endLine := strings.LastIndex(data, "</template>")
+
+	if startLine == -1 || endLine == -1 {
+		return "NO_TEMPLATE", ""
+	}
+
 	templateData := data[startLine+len("<template>") : endLine]
 
-	return strings.Replace(templateData, " ", "", -1)
+	return "OK", strings.Replace(templateData, " ", "", -1)
 }
 
 // Concat merges two strings together
@@ -153,4 +167,10 @@ func PrintResults(c map[string]*ComponentStruct) {
 		log.Fatal(err)
 	}
 	w.Flush()
+}
+
+// GetCurrentTime gets the current time
+func GetCurrentTime() string {
+	currentTime := time.Now()
+	return currentTime.Format("2006-01-02 3:4:5 PM")
 }
