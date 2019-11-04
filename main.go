@@ -15,6 +15,7 @@ var (
 	output     bool
 	cnLength   int
 	toPrint    bool
+	toLog      bool
 )
 
 func info(app *cli.App) {
@@ -49,6 +50,11 @@ func init() {
 			Name:        "print, p",
 			Usage:       "Print the tallies in CLI",
 			Destination: &toPrint,
+		},
+		cli.BoolFlag{
+			Name:        "log, l",
+			Usage:       "Log debugging information if something isn't working.",
+			Destination: &toLog,
 		},
 	}
 }
