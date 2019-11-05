@@ -3,7 +3,7 @@ Keep track how often your Vue components are used.
 
 ![alt text](screenshot.png "Screenshot of terminal containing a demonstration of the tool.")
 
-## Installing
+## Installing (macOS/Linux)
 
 1. [Download](https://github.com/boredchinese/housekeep/releases) and unzip
 
@@ -24,19 +24,26 @@ keep -v
 Run `keep` on a Vue project
 
 ```bash
-keep -d path-to-project/src/ -p run
+cd vue-project
+keep -print run
+```
+
+You could also specify the root directory of a Vue project.
+
+```bash
+keep -d ~/vue-project-2 -p run
 ```
 
 ## Flags
 
-- `-d` or `-dir`: The directory of your Vue project
+- `-d` or `-dir`: The root directory of your Vue project.
 - `-p` or `-print`: Print the result in CLI
 - `-l` or `-log`: Logs debugging information to `debug.log` and is saved wherever `keep` is moved to.
 - `-h` or `-help`: For help 
 
 ## Authors
 
-* **Bored Chinese** - *Initial work* - [BoredChinese](https://github.com/boredchinese)
+* **Bored Chinese** - [BoredChinese](https://github.com/boredchinese)
 
 ## License
 
