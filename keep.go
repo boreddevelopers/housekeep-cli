@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"strings"
 )
 
@@ -46,24 +47,29 @@ func Analyzer(filePath string, c map[string]*ComponentStruct) {
 // Keep contains all the logic for browsing through .vue files.
 func Keep() {
 	// Get all files with vue extension
-	files, err := FilesWalk(dir, "*.vue")
-	componentMap := make(map[string]*ComponentStruct)
-	cnLength = len(files)
+	if DoesPathExist(Concat(dir, "/src")) {
+		files, err := FilesWalk(dir, "*.vue")
+		componentMap := make(map[string]*ComponentStruct)
+		cnLength = len(files)
 
-	Logger("Initializing componentMap")
-	initComponentMap(files, componentMap)
-	Logger("Done.")
+		Logger("Initializing componentMap")
+		initComponentMap(files, componentMap)
+		Logger("Done.")
 
-	if err != nil {
-		Logger("Error in FilesWalk")
-		panic(err)
-	} else {
-		for _, filePath := range files {
-			Logger(Concat("Reading ", filePath))
-			Analyzer(filePath, componentMap)
-			Logger(Concat("Successfully read ", filePath))
+		if err != nil {
+			Logger("Error in FilesWalk")
+			panic(err)
+		} else {
+			for _, filePath := range files {
+				Logger(Concat("Reading ", filePath))
+				Analyzer(filePath, componentMap)
+				Logger(Concat("Successfully read ", filePath))
+			}
 		}
+
+		PrintResults(componentMap)
+	} else {
+		log.Println("src folder does not exist in project root")
 	}
 
-	PrintResults(componentMap)
 }
