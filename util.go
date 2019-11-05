@@ -126,12 +126,27 @@ func RemoveExtension(name string) string {
 
 // PrintResults prints the component counter results
 func PrintResults(c map[string]*ComponentStruct) {
+	line := "file"
+	if cnLength > 1 {
+		line = "files"
+	}
+
+	fmt.Printf("🧹  I've swept through %s %s.\n\n", color.Style{color.FgLightBlue, color.OpBold}.Sprintf("%d", cnLength), line)
 	w := tabwriter.NewWriter(os.Stdout, 8, 8, 8, ' ', tabwriter.AlignRight)
 
 	i := 0
 	for _, v := range c {
 		callCount := color.Green.Sprintf("%d", v.template)
 		importCount := color.Green.Sprintf("%d", v.impt)
+
+		title := color.Green.Sprint(v.name)
+		if v.template == 0 || v.impt == 0 {
+			title = color.Yellow.Sprint(v.name)
+		}
+
+		if v.template == 0 && v.impt == 0 {
+			title = color.Red.Sprint(v.name)
+		}
 
 		if v.template == 0 {
 			callCount = color.Red.Sprintf("%d", v.template)
@@ -141,8 +156,7 @@ func PrintResults(c map[string]*ComponentStruct) {
 			importCount = color.Red.Sprintf("%d", v.impt)
 		}
 
-		divider := color.Gray.Sprint("|")
-		fmt.Fprint(w, v.name, "  ", divider, "\t")
+		fmt.Fprint(w, title, "  |", "\t")
 		fmt.Fprint(w, callCount, color.Gray.Sprint(" call(s)"), "\t")
 		fmt.Fprintln(w, importCount, color.Gray.Sprint(" import(s)"), "\t")
 		i++
