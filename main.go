@@ -33,7 +33,7 @@ func commands(app *cli.App) {
 			Usage:   "Run housekeeping for all components.",
 			Action: func(c *cli.Context) {
 				Keep()
-				fmt.Printf("✨ Done. Checked %d file(s).\n", cnLength)
+				fmt.Printf("\n✨ Done. Checked %d file(s).\n", cnLength)
 			},
 		},
 	}

@@ -7,21 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 	"text/tabwriter"
-	"text/template"
 	"time"
 
 	"github.com/gookit/color"
 )
-
-type a struct {
-	Title string
-	Items []items
-}
-
-type items struct {
-	Title string
-	Body  string
-}
 
 // FilesWalk recursively walks through files finding ones by extension
 func FilesWalk(root, pattern string) ([]string, error) {
@@ -135,37 +124,31 @@ func RemoveExtension(name string) string {
 	return s[0]
 }
 
-const templ = `{{.Title}}{{range .Items}}
-{{.Title}}	{{.Body}}{{end}}
-`
-
 // PrintResults prints the component counter results
 func PrintResults(c map[string]*ComponentStruct) {
-	data := a{
-		Title: "Results",
-		Items: make([]items, len(c)),
-	}
+	w := tabwriter.NewWriter(os.Stdout, 8, 8, 8, ' ', tabwriter.AlignRight)
 
 	i := 0
 	for _, v := range c {
-		title := color.Green.Sprintf("%s", v.name)
+		callCount := color.Green.Sprintf("%d", v.template)
+		importCount := color.Green.Sprintf("%d", v.impt)
 
-		if v.template == 0 || v.impt == 0 {
-			title = color.Red.Sprintf("%s", v.name)
+		if v.template == 0 {
+			callCount = color.Red.Sprintf("%d", v.template)
 		}
 
-		data.Items[i].Title = title
-		data.Items[i].Body = fmt.Sprintf("|  %d call(s), %d import(s)", v.template, v.impt)
+		if v.impt == 0 {
+			importCount = color.Red.Sprintf("%d", v.impt)
+		}
+
+		divider := color.Gray.Sprint("|")
+		fmt.Fprint(w, v.name, "  ", divider, "\t")
+		fmt.Fprint(w, callCount, color.Gray.Sprint(" call(s)"), "\t")
+		fmt.Fprintln(w, importCount, color.Gray.Sprint(" import(s)"), "\t")
 		i++
+
 	}
 
-	t := template.New("template")
-	t, _ = t.Parse(templ)
-	w := tabwriter.NewWriter(os.Stdout, 8, 8, 8, ' ', 0)
-
-	if err := t.Execute(w, data); err != nil {
-		log.Fatal(err)
-	}
 	w.Flush()
 }
 
