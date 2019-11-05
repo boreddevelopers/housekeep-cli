@@ -44,6 +44,7 @@ func init() {
 		cli.StringFlag{
 			Name:        "dir, d",
 			Usage:       "Set the directory of your Vue project.",
+			Value:       GetCWD(),
 			Destination: &dir,
 		},
 		cli.BoolFlag{

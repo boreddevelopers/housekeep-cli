@@ -174,3 +174,24 @@ func GetCurrentTime() string {
 	currentTime := time.Now()
 	return currentTime.Format("2006-01-02 3:4:5 PM")
 }
+
+// GetCWD returns the current working directory
+func GetCWD() string {
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return dir
+}
+
+// DoesPathExist returns as a bool if a file path exists
+func DoesPathExist(filePath string) bool {
+	ret := true
+
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		ret = false
+	}
+
+	return ret
+}
