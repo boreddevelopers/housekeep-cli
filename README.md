@@ -1,6 +1,8 @@
 # 🧹 Housekeep
 Keep track how often your Vue components are used.
 
+**Note:** This is no longer maintained. Use it at your own risk.
+
 ![alt text](screenshot.png "Screenshot of terminal containing a demonstration of the tool.")
 
 ## Installing (macOS/Linux)
